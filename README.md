@@ -38,9 +38,9 @@ A **Movie Guessing Game Backend** built with **Spring Boot**, where players gues
    - The user **guesses correctly**.  
    - The user **exhausts all 5 chances**.  
 
+<!--
 ## ⚙️ Installation & Setup  
 
-<!--
 
 1. Clone the repository:  
    ```bash
