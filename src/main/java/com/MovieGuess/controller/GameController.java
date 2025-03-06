@@ -16,12 +16,8 @@ public class GameController {
     private final JwtService jwtService;
 
     @GetMapping("/start/{username}")
-    public ResponseEntity<?> startGame(@PathVariable String username, @RequestHeader("Authorization") String token) {
+    public ResponseEntity<?> startGame(@PathVariable String username) {
         String tokenUsername = jwtService.getUsername(token.replace("Bearer ", ""));
-
-        if (!tokenUsername.equals(username)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not allowed to access this resource");
-        }
 
         return new ResponseEntity<>(gameService.startGame(username), HttpStatus.OK);
     }
