@@ -17,8 +17,6 @@ public class GameController {
 
     @GetMapping("/start/{username}")
     public ResponseEntity<?> startGame(@PathVariable String username) {
-        String tokenUsername = jwtService.getUsername(token.replace("Bearer ", ""));
-
         return new ResponseEntity<>(gameService.startGame(username), HttpStatus.OK);
     }
 
