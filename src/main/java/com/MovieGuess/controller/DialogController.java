@@ -1,26 +1,27 @@
 package com.MovieGuess.controller;
 
-import com.MovieGuess.model.Dialog;
-import com.MovieGuess.repo.DialogRepo;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.MovieGuess.dto.DialogueDto;
+import com.MovieGuess.service.MovieDialogService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/dialogs")
+@RequiredArgsConstructor
 public class DialogController {
 
-    @Autowired
-    private DialogRepo dialogRepository;
+   private final MovieDialogService movieDialogService;
 
-
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PostMapping("/add")
-    public String addDialog(@RequestBody Dialog dialog) {
-        dialogRepository.save(dialog);
-        return "Dialog added successfully!";
+    public ResponseEntity<String> addDialog(@RequestBody DialogueDto dialogDto, @RequestParam Long movieId) {
+        try {
+            movieDialogService.saveSingleDialog(dialogDto, movieId);
+            return ResponseEntity.ok("Dialog added successfully!");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error adding dialog: " + e.getMessage());
+        }
     }
 }

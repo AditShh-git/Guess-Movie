@@ -10,5 +10,5 @@ public class MovieWithDialogRequest {
     private String title;
     private String industry;
     private int releaseYear;
-    private List<Dialog> dialogs;
+    private List<DialogueDto> dialogs;
 }

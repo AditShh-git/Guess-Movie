@@ -36,7 +36,7 @@ public class MovieController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/addWithDialogs")
     public ResponseEntity<String> addMovieWithDialogs(@RequestBody MovieWithDialogRequest movieWithDialogsDTO) {
-        movieDialogService.saveMovieandDialog(movieWithDialogsDTO);
+        movieDialogService.saveMovieAndDialogs(movieWithDialogsDTO);
         return ResponseEntity.ok("Movie and Dialogs added successfully!");
     }
 
