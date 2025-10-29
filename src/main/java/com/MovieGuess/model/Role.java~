@@ -1,0 +1,4 @@
+package com.MovieGuess.model;
+
+public enum Role {
+}
