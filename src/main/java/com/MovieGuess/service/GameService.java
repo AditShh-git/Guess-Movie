@@ -20,84 +20,69 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class GameService {
 
-    private final DialogRepo dialogRepository;
-    private final MovieRepo movieRepository;
-    private final UserRepo userRepo;
-//    private  User user;
+   private final DialogRepo dialogRepo;
+   private final MovieRepo movieRepo;
+   private final UserService userService;
 
-    Map<String, GameSession> gameSessions = new ConcurrentHashMap<>();
+   Map<String, GameSession> gameSessions = new ConcurrentHashMap<>();
 
-    public String startGame(String username) {
-        if (gameSessions.containsKey(username)) {
-            return "You already have an active game! Use your remaining attempts.";
-        }
+   public String startGame(String username){
+       if (gameSessions.containsKey(username)){
+           return "You already have an active game! Use your remaining attempts.";
+       }
 
-        Optional<Dialog> dialog=dialogRepository.findRandomDialog();
+       Optional<Dialog> dialog = dialogRepo.findRandomDialog();
 
-        if (dialog.isPresent()) {
-            gameSessions.put(username,new GameSession(dialog.get().getId(),5));
+       if (dialog.isPresent()){
+           gameSessions.put(username, new GameSession(dialog.get().getId(), 5));
             return "Guess the movie for this dialogue: \"" + dialog.get().getDialogueText() + "\"";
-        }
-        return "No active dialog found";
-    }
+       }
+       return "No active dialog found";
+   }
 
-    public String verifyGuess(String username,String guess) {
-        int currentScore = getUserScore(username);
-        GameSession session=gameSessions.get(username);
+   public String verifyGuess(String username, String guess){
+       GameSession gameSession = gameSessions.get(username);
 
-        if (session==null) {
+       if (gameSession == null){
+           return "You are not in a game!";
+       }
+       if (gameSession.getAttemptsLeft() <= 0){
+           gameSessions.remove(username);
+           return "You are out of guesses!";
+       }
+
+       Optional<Dialog> dialog = dialogRepo.findById(gameSession.getDialogId());
+       if (dialog.isPresent()){
+           Long mID = dialog.get().getMovie().getId();
+
+           Optional<String> movie = movieRepo.findTitleByMovieId(mID);
+           if (movie.isPresent() && movie.get().equalsIgnoreCase(guess)){
+               userService.updateScore(1, username);
+               gameSessions.remove(username);
+
+               return "Correct guess " + username + " Your score is : " + userService.getScoreByUsername(username);
+           } else {
+               gameSession.decrementAttempts();
+               return "Incorrect guess , Remaining attempts left : " + gameSession.getAttemptsLeft();
+           }
+       }
+       return "Error fetching movie details.";
+   }
+
+    public String restartGame(String username) {
+
+        System.out.println("Attempting to restart game for user: '" + username + "'");
+        boolean sessionExists = gameSessions.containsKey(username);
+        System.out.println("Session exists for user? " + sessionExists);
+
+        if (!sessionExists) {
+            System.out.println("Returning 'You are not in a game' because session doesn't exist.");
             return "You are not in a game";
         }
-        if (session.getAttemptsLeft()<=0){
-            gameSessions.remove(username);
-            return "You are out of guesses";
-        }
 
-        Optional<Dialog> dialog=dialogRepository.findById(session.getDialogId());
-        if (dialog.isPresent()) {
-            Long mID=dialog.get().getMovie().getId();
-
-            Optional<String> movie=movieRepository.findTitleByMovieId(mID);
-            if (movie.isPresent() && movie.get().equalsIgnoreCase(guess)) {
-                 currentScore+=1;
-                setUserScore(username,currentScore);
-                gameSessions.remove(username);
-                return "Correct guess " + username + " Your score is : " + getUserScore(username) ;
-            }
-            else {
-                session.decrementAttempts();
-                return "Incorrect guess , Remaining attempts left : " +session.getAttemptsLeft();
-            }
-        }
-    return "Error fetching movie details.";
-    }
-
-    public int getUserScore(String username){
-        Optional<User> userOptional = userRepo.findByUsername(username);
-
-        if (userOptional.isEmpty()) {
-            throw new RuntimeException("User not found!");
-        }
-
-        User user = userOptional.get();
-        return user.getScore();
-    }
-
-    public void setUserScore(String username,int score){
-        Optional<User> userOptional = userRepo.findByUsername(username);
-        if (userOptional.isEmpty()) {
-            throw new RuntimeException("User not found!");
-        }
-        User user = userOptional.get();
-        user.setScore(score);
-        userRepo.save(user);
-    }
-
-    public String restartGame( String username) {
-        if (!gameSessions.containsKey(username)) {
-            return "You are not in a game";
-        }
-            gameSessions.remove(username);
-        return "Restarting the game";
+        System.out.println("Removing game session for user: '" + username + "'");
+        gameSessions.remove(username);
+        System.out.println("Session removed.");
+        return "Game restarted successfully!";
     }
 }

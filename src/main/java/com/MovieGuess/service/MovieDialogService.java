@@ -29,7 +29,6 @@ public class MovieDialogService {
         movie.setIndustry(dto.getIndustry());
         movie.setReleaseYear(dto.getReleaseYear());
 
-        // Map DialogDto list to Dialog entity list
         List<DialogueDto> dialogDtos = dto.getDialogs();
         if (dialogDtos != null && !dialogDtos.isEmpty()) {
             List<Dialog> dialogEntities = dialogDtos.stream().map(dialogDto -> {
@@ -38,7 +37,7 @@ public class MovieDialogService {
                 dialog.setDialogueActor(dialogDto.getDialogueActor());
                 dialog.setMovie(movie); // Set relationship
                 return dialog;
-            }).collect(Collectors.toList()); // Use Collectors.toList()
+            }).collect(Collectors.toList());
             movie.setDialogs(dialogEntities);
         }
 
@@ -47,13 +46,16 @@ public class MovieDialogService {
 
     @Transactional
     public void saveSingleDialog(DialogueDto dialogDto, Long movieId) {
+
         Movie movie = movieRepo.findById(movieId)
-                .orElseThrow(() -> new EntityNotFoundException("Movie not found with ID: " + movieId));
+                                .orElseThrow(() -> new EntityNotFoundException("Movie not found with ID: " + movieId));
+
 
         Dialog dialog = new Dialog();
         dialog.setDialogueText(dialogDto.getDialogueText());
         dialog.setDialogueActor(dialogDto.getDialogueActor());
         dialog.setMovie(movie); // Set the relationship
+
 
         dialogRepo.save(dialog);
     }
