@@ -24,5 +24,5 @@ public interface MovieRepo extends JpaRepository<Movie,Long> {
     Optional<String> findTitleByMovieId(Long movieId);
 
     @Query("SELECT m.title FROM Movie m")
-    List<String> findAllMovies();
+    List<String> findAllMoviesTitles();
 }

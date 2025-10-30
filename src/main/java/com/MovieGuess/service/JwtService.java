@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class JwtService {
@@ -21,13 +23,18 @@ public class JwtService {
     private Long EXPIRATION_TIME;
 
     public String generateToken(UserDetails userDetails) {
-        Key signingKey = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));  // Generate Key from secret
+        Key signingKey = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+
+        var authorities = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
-                .claim("role","ROLE_" + userDetails.getAuthorities().stream().findFirst().get().getAuthority())
+                .claim("roles", authorities)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)) // 1 hour expiry
-                .signWith(signingKey, SignatureAlgorithm.HS256) // Use the generated signing key
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .signWith(signingKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 

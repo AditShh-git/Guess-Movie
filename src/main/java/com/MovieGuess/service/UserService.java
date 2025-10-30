@@ -1,5 +1,6 @@
 package com.MovieGuess.service;
 
+import com.MovieGuess.dto.RegisterRequest;
 import com.MovieGuess.dto.UserDto;
 import com.MovieGuess.model.Role;
 import com.MovieGuess.model.User;
@@ -20,12 +21,16 @@ public class UserService {
         return new UserDto(user.getId(), user.getUsername(), user.getScore(), user.getRole());
     }
 
-    public void saveUser(User user) {
-        if (userRepo.findByUsername(user.getUsername()).isPresent()) {
-            throw new IllegalStateException("User with name " + user.getUsername() + " already exists");
+    public void saveUser(RegisterRequest registerRequest) {
+        if (userRepo.findByUsername(registerRequest.getUsername()).isPresent()){
+            throw new IllegalStateException("Username is already taken");
         }
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        User user = new User();
+        user.setUsername(registerRequest.getUsername());
+        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         user.setRole(Role.USER);
+        user.setScore(0);
+
         userRepo.save(user);
     }
 
@@ -39,9 +44,9 @@ public class UserService {
         return mapToUserDto(user);
     }
 
-    public void updateScore(int score, String username) {
+    public void updateScore(String username, int points) {
         User user = findByUsername(username);
-        user.setScore(user.getScore() + score);
+        user.setScore(user.getScore() + points);
         userRepo.save(user);
     }
 

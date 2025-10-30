@@ -57,7 +57,7 @@ public class GameService {
 
            Optional<String> movie = movieRepo.findTitleByMovieId(mID);
            if (movie.isPresent() && movie.get().equalsIgnoreCase(guess)){
-               userService.updateScore(1, username);
+               userService.updateScore(username,1);
                gameSessions.remove(username);
 
                return "Correct guess " + username + " Your score is : " + userService.getScoreByUsername(username);

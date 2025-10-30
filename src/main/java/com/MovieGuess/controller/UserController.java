@@ -1,16 +1,12 @@
 package com.MovieGuess.controller;
 
 import com.MovieGuess.dto.LogInRequest;
+import com.MovieGuess.dto.RegisterRequest;
 import com.MovieGuess.dto.UserDto;
-import com.MovieGuess.model.User;
-import com.MovieGuess.repo.UserRepo;
-import com.MovieGuess.service.GameService;
 import com.MovieGuess.service.JwtService;
 import com.MovieGuess.service.UserService;
 import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,14 +28,14 @@ public class UserController {
     private final AuthenticationManager authenticationManager;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@Valid @RequestBody User user){
-
+    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest registerRequest) { // Assuming RegisterRequest is DTO
         try{
-            userService.saveUser(user);
+            userService.saveUser(registerRequest);
             return ResponseEntity.ok("User registered successfully!");
-        }catch (IllegalArgumentException e){
+        }catch (IllegalStateException e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }catch (EntityExistsException e){
+        }catch (Exception e){
+
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error registering user: " + e.getMessage());
         }
     }

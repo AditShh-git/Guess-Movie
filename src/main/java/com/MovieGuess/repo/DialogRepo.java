@@ -10,27 +10,22 @@ import java.util.Optional;
 
 @Repository
 public interface DialogRepo extends JpaRepository<Dialog,Long> {
-//    @Query("SELECT d.movie.leadActor FROM Dialog d WHERE d.id = :dialogId")
-//    Optional<String> findLeadActorByDialogId(Long dialogId);
-//
-//    Optional<Dialog> findRandomDialogByMovieId(Long movieId);
-
+    // Query for fetching a random dialogue is fine
     @Query("SELECT d FROM Dialog d ORDER BY FUNCTION('RAND') LIMIT 1")
     Optional<Dialog> findRandomDialog();
 
 
-    // Get the last shown dialog (Assume single player per session for simplicity)
+    // Query for last shown dialog is fine
     @Query("SELECT d FROM Dialog d ORDER BY d.id DESC LIMIT 1")
     Optional<Dialog> findLastShownDialog();
 
+    // Queries linking to Movie details are fine
     @Query("SELECT m.industry FROM Movie m JOIN Dialog d ON d.movie.id = m.id WHERE d.dialogueText = :dialogueText")
     Optional<String> findIndustryByDialogue(String dialogueText);
 
-    // Find the release year based on the dialogue text
     @Query("SELECT m.releaseYear FROM Movie m JOIN Dialog d ON d.movie.id = m.id WHERE d.dialogueText = :dialogueText")
     Optional<Integer> findReleaseYearByDialogue(String dialogueText);
 
-    // Find the actor who delivered the dialogue based on the dialogue text
     @Query("SELECT d.dialogueActor FROM Dialog d WHERE d.dialogueText = :dialogueText")
     Optional<String> findActorByDialogue(String dialogueText);
 }

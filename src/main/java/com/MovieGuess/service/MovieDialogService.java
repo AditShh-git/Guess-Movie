@@ -1,6 +1,7 @@
 package com.MovieGuess.service;
 
 import com.MovieGuess.dto.DialogueDto;
+import com.MovieGuess.dto.MovieDto;
 import com.MovieGuess.dto.MovieWithDialogRequest;
 import com.MovieGuess.model.Dialog;
 import com.MovieGuess.model.Movie;
@@ -35,13 +36,13 @@ public class MovieDialogService {
                 Dialog dialog = new Dialog();
                 dialog.setDialogueText(dialogDto.getDialogueText());
                 dialog.setDialogueActor(dialogDto.getDialogueActor());
-                dialog.setMovie(movie); // Set relationship
+                dialog.setMovie(movie);
                 return dialog;
             }).collect(Collectors.toList());
             movie.setDialogs(dialogEntities);
         }
 
-        movieRepo.save(movie); // Cascade saves dialogs
+        movieRepo.save(movie);
     }
 
     @Transactional
@@ -54,9 +55,37 @@ public class MovieDialogService {
         Dialog dialog = new Dialog();
         dialog.setDialogueText(dialogDto.getDialogueText());
         dialog.setDialogueActor(dialogDto.getDialogueActor());
-        dialog.setMovie(movie); // Set the relationship
+        dialog.setMovie(movie);
 
 
         dialogRepo.save(dialog);
     }
+
+    @Transactional
+    public void saveMovie(MovieDto movieDto) {
+        Movie movie = new Movie();
+        movie.setTitle(movieDto.getTitle());
+        movie.setIndustry(movieDto.getIndustry());
+        movie.setReleaseYear(movieDto.getReleaseYear());
+
+        movieRepo.save(movie);
+    }
+
+    @Transactional
+    public void deleteMovie(Long movieId) {
+        if (!movieRepo.existsById(movieId)) {
+            throw new EntityNotFoundException("Movie not found with ID: " + movieId);
+        }
+
+        movieRepo.deleteById(movieId);
+    }
+
+    @Transactional
+    public void deleteDialog(Long dialogId) {
+        if (!dialogRepo.existsById(dialogId)) {
+            throw new EntityNotFoundException("Dialogue not found with ID: " + dialogId);
+        }
+        dialogRepo.deleteById(dialogId);
+    }
+
 }

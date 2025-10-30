@@ -1,17 +1,15 @@
 package com.MovieGuess.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "movies")
-@Data
+@Setter
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Movie {

@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -29,21 +30,24 @@ public class SecurityConfig {
     private final JwtService jwtService;
     private final UserRepo userRepo;
 
+
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity httpSecurity, AuthenticationProvider authenticationProvider) throws Exception {
         httpSecurity
-                .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless apps
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/user/**").permitAll() // Allow authentication-related routes (login)
-                        .requestMatchers("/movies/**", "/dialogs/add").hasRole("ADMIN") // Admin-only routes
-                        .requestMatchers( "/game/**").authenticated() // Public routes
-                        .requestMatchers(HttpMethod.GET,"/game/hints/**").authenticated()
-                        .anyRequest().authenticated()) // All other routes require authentication
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless application
-                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class); // Add JWT filter before default filter
+                        .requestMatchers("/user/**").permitAll()
+                        .requestMatchers("/movies/**", "/dialogs/add").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers( "/game/**", "/game/hints/**").authenticated()
+                        .anyRequest().authenticated())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                .authenticationProvider(authenticationProvider)
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();
     }
+
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter(){
         return new JwtAuthenticationFilter(jwtService, userDetailsService());
@@ -53,22 +57,21 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception{
         return authConfig.getAuthenticationManager();
     }
+
     @Bean
     public UserDetailsService userDetailsService(){
         return username -> userRepo.findByUsername(username)
-                .orElseThrow(() -> {
-                    // Log the missing username for debugging
-//                        System.err.println("Failed to find user with username: " + username);
-                    return new UsernameNotFoundException("User with username '" + username + "' not found");
-                });
-
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
+
     @Bean
-    public DaoAuthenticationProvider authenticationProvider(){
+    @SuppressWarnings("deprecation")
+    public DaoAuthenticationProvider daoAuthenticationProvider(){
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService());
         authProvider.setPasswordEncoder(passwordEncoder());
